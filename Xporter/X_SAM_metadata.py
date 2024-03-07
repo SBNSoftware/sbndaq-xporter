@@ -99,12 +99,15 @@ def SAM_metadata(filename, projectvers, projectname):
 
         metadata["configuration.name"] = dictionary.get('configuration')
 
+        if "Calibration" in metadata["configuration.name"] and metadata["data_stream"]=="offbeamminbias":
+            metadata["data_stream"]="offbeamminbiascalib"
+        
         s = dictionary.get('configuration').lower()
     except Exception as e:
         print('X_SAM_Metadata.py exception: '+ str(e))
         print(datetime.now().strftime("%T"), "Failed to connect to RunHistoryReader")
 
-
+        
     metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
 
        
