@@ -99,8 +99,11 @@ def SAM_metadata(filename, projectvers, projectname):
 
         metadata["configuration.name"] = dictionary.get('configuration')
 
-        if "Calibration" in metadata["configuration.name"] and metadata["data_stream"]=="offbeamminbias":
+        if "Physics"!=metadata["configuration.name"][0:7] and (metadata["data_stream"]=="offbeamnumiminbias" or metadata["data_stream"]=="offbeambnbminbias"):
             metadata["data_stream"]="offbeamminbiascalib"
+	#we should be able to do the latter, but we (Ivan, Donatella, Matteo, and Wes) decided 7 Mar 2024 to not distinguish here, since there _could_ __potentially__ be something different
+        #elif metadata["configuration.name"][0:7]=="Physics" and (metadata["data_stream"]=="offbeamnumiminbias" or metadata["data_stream"]=="offbeambnbminbias"):
+	#    metadata["data_stream"]="offbeamminbias"
         
         s = dictionary.get('configuration').lower()
     except Exception as e:
