@@ -1,1 +1,2 @@
+35 0 */1 * * ~icarus/FileTransfer/sbndaq-xporter/Xporter/backupTriggerLogs.sh
 5 1 */1 * * ~icarus/FileTransfer/sbndaq-xporter/Xporter/removeOldLogFiles.sh
