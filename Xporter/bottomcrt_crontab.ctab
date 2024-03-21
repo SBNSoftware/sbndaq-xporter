@@ -1,1 +1,2 @@
+MAILTO=mvicenzi@bnl.gov
 25 1 */2 * * ~icarus/FileTransfer/sbndaq-xporter/Xporter/removeBottomCRTBackendFiles.sh

@@ -1,4 +1,4 @@
-MAILTO=wketchum@fnal.gov
+MAILTO=wketchum@fnal.gov,mvicenzi@bnl.gov
 */1 * * * * ~icarus/FileTransfer/sbndaq-xporter/Xporter/runXporter.sh
 1 */1 * * * ~icarus/FileTransfer/sbndaq-xporter/Xporter/removeOnMonFiles.sh
 2 */1 * * * ~icarus/FileTransfer/sbndaq-xporter/Xporter/removeTestDirFiles.sh
