@@ -1,7 +1,7 @@
  #  Usage: python Xporter.py <data directory> <dropbox directory>
 #
 # program to:
-#       1)  Check to see if there are new files and if there are:
+#       1) Check to see if there are new files and if there are:
 #       2) update run configuration database
 #       3) create the SAM metadata file
 #       4) move the data file to the dropbox
