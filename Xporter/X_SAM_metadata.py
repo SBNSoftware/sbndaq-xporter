@@ -65,7 +65,6 @@ def SAM_metadata(filename, projectvers, projectname):
 
     print("Checksum = %s" % checksumstr)
 
-
     #time
     gmt = time.gmtime(os.stat(filename).st_mtime)
     time_tuple =time.struct_time(gmt) #strftime("%d-%b-%Y %H:%M:%S",gmt)
@@ -76,11 +75,9 @@ def SAM_metadata(filename, projectvers, projectname):
 
     #print "Creation time:", timestr
 
-    
     metadata["checksum"] = [ checksumstr ]  
     
     #ICARUS specific fields for bookkeping 
-
 
     try:
         result=offline_run_history.RunHistoryiReader().read(run_num)
@@ -91,25 +88,31 @@ def SAM_metadata(filename, projectvers, projectname):
             result = offline_run_history.RunHistoryiReader(ucondb_uri='https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records/configuration/key=%d').read(run_num)
             dictionary={**result[1]}
 
-        version = dictionary.get('projectversion')
+        version = dictionary['projectversion']
 
         metadata["icarus_project.version"] = version.rsplit()[0] #"raw_%s" % projectvers  
 
         metadata["icarus_project.name"] = "icarus_daq_%s" % version.rsplit()[0] #projectname
 
-        metadata["configuration.name"] = dictionary.get('configuration')
+        metadata["configuration.name"] = dictionary['configuration']
 
         if "Physics"!=metadata["configuration.name"][0:7] and "Overlays"!=metadata["configuration.name"][0:8] and (metadata["data_stream"]=="offbeamnumiminbias" or metadata["data_stream"]=="offbeambnbminbias"):
             metadata["data_stream"]="offbeamminbiascalib"
-	#we should be able to do the latter, but we (Ivan, Donatella, Matteo, and Wes) decided 7 Mar 2024 to not distinguish here, since there _could_ __potentially__ be something different
+	#we should be able to do the latter, but we (Ivan, Donatella, Matteo, and Wes) decided 7 Mar 2024 to not distinguish here
+        #since there _could_ __potentially__ be something different
         #elif metadata["configuration.name"][0:7]=="Physics" and (metadata["data_stream"]=="offbeamnumiminbias" or metadata["data_stream"]=="offbeambnbminbias"):
 	#    metadata["data_stream"]="offbeamminbias"
         
-        s = dictionary.get('configuration').lower()
+        s = dictionary['configuration'].lower()
+
+    except KeyError as e:
+        print("X_SAM_Metadata.py exception: "+str(e))
+        print(datetime.now().strftime("%T"), "Missing metadata value in database")
+
     except Exception as e:
         print('X_SAM_Metadata.py exception: '+ str(e))
         print(datetime.now().strftime("%T"), "Failed to connect to RunHistoryReader")
-
+    
         
     metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
 
