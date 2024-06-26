@@ -108,11 +108,12 @@ def SAM_metadata(filename, projectvers, projectname):
     except KeyError as e:
         print("X_SAM_Metadata.py exception: "+str(e))
         print(datetime.now().strftime("%T"), "Missing metadata value in database")
+        raise
 
     except Exception as e:
         print('X_SAM_Metadata.py exception: '+ str(e))
         print(datetime.now().strftime("%T"), "Failed to connect to RunHistoryReader")
-    
+        raise    
         
     metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
 
@@ -155,6 +156,16 @@ def SAM_metadata(filename, projectvers, projectname):
     #s = dictionary.get('components').replace('[','').replace(']','')
     #metadata["icarus.components"] = s.split(', ')
 
+    #last check before releasing metadata into the wild
+    try:
+        metadata["icarus_project.version"]
+        metadata["icarus_project.name"]
+        metadata["configuration.name"]
+        metadata["data_stream"]
+    except KeyError as e:
+        print("X_SAM_Metadata.py exception: "+str(e))
+        print("Cathing missing metadata before it's too late!")
+        raise
 
     return json.dumps(metadata)
 
