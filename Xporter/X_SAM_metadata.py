@@ -160,11 +160,13 @@ def SAM_metadata(filename, projectvers, projectname):
     try:
         metadata["icarus_project.version"]
         metadata["icarus_project.name"]
+        metadata["icarus_project.stage"]
         metadata["configuration.name"]
         metadata["data_stream"]
+        metadata["data_tier"]
     except KeyError as e:
         print("X_SAM_Metadata.py exception: "+str(e))
-        print("Cathing missing metadata before it's too late!")
+        print("Missing essential metadata for data selection")
         raise
 
     return json.dumps(metadata)
