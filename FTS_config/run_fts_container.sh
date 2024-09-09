@@ -19,7 +19,7 @@ host=$(hostname | awk -F'.' '{print $1}')
 echo "Starting FTS podman container image on ${host}"
 
 # setting the volume paths inside the container to be the same
-# hopefully this helps maintenance of the config files
+# matching between actual location and relative path inside
 # syntax: -v /HOST-DIR:/CONTAINER-DIR
 
 fts_x509_proxy_dir=/opt/icarusraw
@@ -37,11 +37,13 @@ podman run \
        -v ${fts_dropbox_dir}:/storage \
        -v ${fts_samcp_log_dir}:/var/tmp \
        -p 8787:8787 \
-       --env-host \
        -d \
+       --env-host \
        --network slirp4netns:port_handler=slirp4netns \
+       --name fts_${host} \
        fermifts
 
 # DO NOT USE WHILE TESTING... just to be sure we don't transfer anytyhing..
 #       -v .${fts_pnfs_dir}:/pnfs/icarus \
-#       -v .${fts_x509_proxy_dir}:/opt/fts/fts_proxy \
+# NEEDS /opt/icarusraw/... (which is not setup yet)
+#       -v ${fts_x509_proxy_dir}:/opt/fts/fts_proxy \
