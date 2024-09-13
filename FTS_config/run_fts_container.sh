@@ -28,7 +28,6 @@ fts_db_dir=/var/tmp
 fts_samcp_log_dir=/var/tmp
 fts_config_dir=$PWD
 fts_dropbox_dir=/data/fts_dropbox
-fts_pnfs_dir=/pnfs/icarus
 
 podman run \
        -v ${fts_log_dir}:/opt/fts/fts_logs \
@@ -36,14 +35,13 @@ podman run \
        -v ${fts_config_dir}:/opt/fts/fts_config \
        -v ${fts_dropbox_dir}:/storage \
        -v ${fts_samcp_log_dir}:/var/tmp \
-       -p 8787:8787 \
+       -v ${fts_x509_proxy_dir}:/opt/fts/fts_proxy \
        -d \
        --env-host \
        --network slirp4netns:port_handler=slirp4netns \
+       -p 8787:8787 \
        --name fts_${host} \
        fermifts
+      
 
-# DO NOT USE WHILE TESTING... just to be sure we don't transfer anytyhing..
-#       -v .${fts_pnfs_dir}:/pnfs/icarus \
-# NEEDS /opt/icarusraw/... (which is not setup yet)
-#       -v ${fts_x509_proxy_dir}:/opt/fts/fts_proxy \
+#--network host \
