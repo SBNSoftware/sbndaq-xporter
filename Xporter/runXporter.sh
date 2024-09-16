@@ -16,11 +16,11 @@ fi
 echo "$now : Xport Starting! Obtaining lock file $file_lock now!" >> ${logfile_attempt} 2>&1
 touch $file_lock
 
-# need to source ROOT to get pyRoot
+# need to source ROOT to get pyROOT
 SPACK_ENV="/daq/software/spack_packages/spack/current/NULL/share/spack/setup-env.sh"
+source ${SPACK_ENV}
 SPACK_ARCH="linux-$(spack arch --operating-system 2>/dev/null)-x86_64_v2"   
-source ${SPACK_ENV_SCRIPT}
-spack load root@6.28.10 %gcc@12.2.0 arch=${SPACK_ARCH}
+spack load root@6.28.10 %gcc@12.2.0 arch=${SPACK_ARCH} >> ${logfile_attempt} 2>&1
 
 (( $(pip3 freeze |grep requests |wc -l) )) ||  { echo "requests is missing; installing requests..."; pip3 install --user requests; }
 
