@@ -37,11 +37,9 @@ podman run \
        -v ${fts_samcp_log_dir}:/var/tmp \
        -v ${fts_x509_proxy_dir}:/opt/fts/fts_proxy \
        -d \
-       --env-host \
+       --hostname ${host} \
+       --env USER=${USER} \
        --network slirp4netns:port_handler=slirp4netns \
        -p 8787:8787 \
        --name fts_${host} \
        fermifts
-      
-
-#--network host \
