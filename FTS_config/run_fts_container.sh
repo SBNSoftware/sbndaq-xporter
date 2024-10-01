@@ -11,7 +11,7 @@
 # Note:
 # A -v mount line is needed for each local or pnfs directory that FTS needs. 
 # These can be deduced from the configuration files:
-#  icarus-evb_fts_config.ini
+#  fts.conf
 #  sam_cp.cfg
 #
 
@@ -19,15 +19,27 @@ host=$(hostname | awk -F'.' '{print $1}')
 echo "Starting FTS podman container image on ${host}"
 
 # setting the volume paths inside the container to be the same
-# matching between actual location and relative path inside
+# matching between actual location and relative paths inside
 # syntax: -v /HOST-DIR:/CONTAINER-DIR
 
+# these are real locations on the current host
+# using the same as the legacy FTS setup
 fts_x509_proxy_dir=/opt/icarusraw
 fts_log_dir=/daq/log/fts_logs/$host
 fts_db_dir=/var/tmp
 fts_samcp_log_dir=/var/tmp
-fts_config_dir=$PWD
+fts_config_dir=~icarusraw/FTS/$host
 fts_dropbox_dir=/data/fts_dropbox
+
+# copy config files into host-specific config directory
+# this is not stricly necessary, but keeps things tidy?
+cp $PWD/fts.conf $PWD/sam_cp.cfg $fts_config_dir/
+
+# additional things the run command does:
+# - set hostname inside the container as ${host}
+# - set $USER inside the container as current user
+# - set container name to fts_${host}
+# - expose port 8787 for localhost:8787 status page
 
 podman run \
        -v ${fts_log_dir}:/opt/fts/fts_logs \
@@ -42,4 +54,5 @@ podman run \
        --network slirp4netns:port_handler=slirp4netns \
        -p 8787:8787 \
        --name fts_${host} \
+       --replace \
        fermifts
