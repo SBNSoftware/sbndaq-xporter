@@ -8,10 +8,11 @@
 #
 
 host=$(hostname | awk -F'.' '{print $1}')
-echo "Stop FTS podman container image on ${host}"
 
 # stop the container
+echo "Stopping FTS podman container on ${host}"
 podman stop fts_${host}
 
 # remove the container, so you can run it again
+echo "Removing FTS podman container on ${host}"
 podman rm fts_${host}

@@ -33,6 +33,7 @@ fts_dropbox_dir=/data/fts_dropbox
 
 # copy config files into host-specific config directory
 # this is not stricly necessary, but keeps things tidy?
+mkdir -p $fts_config_dir
 cp $PWD/fts.conf $PWD/sam_cp.cfg $fts_config_dir/
 
 # additional things the run command does:
@@ -48,11 +49,11 @@ podman run \
        -v ${fts_dropbox_dir}:/storage \
        -v ${fts_samcp_log_dir}:/var/tmp \
        -v ${fts_x509_proxy_dir}:/opt/fts/fts_proxy \
-       -d \
-       --hostname ${host} \
-       --env USER=${USER} \
-       --network slirp4netns:port_handler=slirp4netns \
        -p 8787:8787 \
+       -d \
+       --network slirp4netns:port_handler=slirp4netns \
+       --hostname ${host} \
+       --env USERNAME=${USER} \
        --name fts_${host} \
        --replace \
        fermifts
