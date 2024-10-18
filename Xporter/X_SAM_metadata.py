@@ -95,6 +95,9 @@ def SAM_metadata(filename, projectvers, projectname):
         metadata["icarus_project.name"] = "icarus_daq_%s" % version.rsplit()[0] #projectname
 
         metadata["configuration.name"] = dictionary['configuration']
+        
+        if "Error" in metadata["icarus_project.version"]:
+            raise Exception(version)
 
         if "Physics"!=metadata["configuration.name"][0:7] and "Overlays"!=metadata["configuration.name"][0:8] and (metadata["data_stream"]=="offbeamnumiminbias" or metadata["data_stream"]=="offbeambnbminbias"):
             metadata["data_stream"]="offbeamminbiascalib"
