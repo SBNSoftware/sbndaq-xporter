@@ -1,7 +1,8 @@
 #!/bin/bash
 
+host=$(hostname | awk -F'.' '{print $1}')
 timestamp=`date +%Y_%m_%d_%H_%M`
-logfile="/daq/log/fts_logs/`hostname`/FileCleanup_`hostname`_${timestamp}.log"
+logfile="/daq/log/fts_logs/${host}/FileCleanup_${host}_${timestamp}.log"
 
 python3 /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/ManualFTSFileCleanup.py >> ${logfile} 2>&1
 

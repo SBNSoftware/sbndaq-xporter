@@ -1,33 +1,32 @@
-#
+#!/bin/bash
+
 # Things to do to setup for FTS
 #
-# Generally this follows from these webpages:
-#  https://opensciencegrid.org/docs/common/yum/
-#  https://opensciencegrid.org/docs/common/ca/
-#
-# Need OSG 3.4 installed: I think with care to make sure all the OSG packages are given preference vs EPEL/others.
-#
-#
-# This will need to run as root.
+# Generally this follows from these webpages
+# https://cdcvs.fnal.gov/redmine/projects/filetransferservice/wiki
+# https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md
 
-yum install yum-plugin-priorities
-yum install yum-conf-extras
-#yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-#yum install epel-release-latest-7
+# this should be run as user `icarusraw`
+if [ "$(whoami)" != "icarusraw" ]; then
+    echo "This script must be run as icarusraw, you silly goose!"
+    exit 1
+fi
 
-#(make sure sl-extras and epel repos are enabled)
-#yum install https://repo.opensciencegrid.org/osg/3.4/osg-3.4-el7-release-latest.rpm
-#yum install osg-3.4-el7-release-latest
+# enable linger mode for icarusraw: avoids container exiting after user logs out
+# https://github.com/containers/podman/blob/main/troubleshooting.md#21-a-rootless-container-running-in-detached-mode-is-closed-at-logout
+loginctl enable-linger $(whoami) 
 
-#Then we need CA certificates installed, which I think means following this:
-yum install osg-ca-certs
-yum install osg-wn-client
-yum install fetch-crl
+# setup some configuration for rootless containers
+CONFFILE="${HOME}/.config/containers/storage.conf" 
+if [ ! -f "$CONFFILE" ]; then
+  echo "Creating $CONFFILE for $USER"
+  mkdir -p "${HOME}/.config/containers"
+  echo -e "[storage]\ndriver = \"overlay\"\n\n[storage.options.overlay]\nforce_mask = \"740\"" > "$CONFFILE"
+fi
 
-#Then, make sure fetch-crl-boot and fetch-crl-cron are enabled.
-systemctl enable fetch-crl-boot.service
-systemctl enable fetch-crl-cron.service
+# pull latest image
+podman pull imageregistry.fnal.gov/sam-zerg/fermifts:latest
 
-systemctl start fetch-crl-boot.service &
-systemctl start fetch-crl-cron.service &
-
+# check listed images
+echo "List of available podman images:"
+podman images 

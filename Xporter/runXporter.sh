@@ -1,11 +1,12 @@
 #!/bin/bash
 
+host=$(hostname | awk -F'.' '{print $1}')
 timestamp=`date +%Y_%m_%d`
 now=`date "+%Y-%m-%d %T"`
-logfile="/daq/log/fts_logs/`hostname`/xporter_`hostname`_${timestamp}.log"
-logfile_attempt="/daq/log/fts_logs/`hostname`/attempt_xporter_`hostname`_${timestamp}.log"
+logfile="/daq/log/fts_logs/${host}/xporter_${host}_${timestamp}.log"
+logfile_attempt="/daq/log/fts_logs/${host}/attempt_xporter_${host}_${timestamp}.log"
 
-file_lock="/tmp/xporter_`hostname`.lock"
+file_lock="/tmp/xporter_${host}.lock"
 
 if [ -f $file_lock ]; then
     echo "$now : Xport in progress! Do not run" >> ${logfile_attempt} 2>&1
@@ -13,27 +14,21 @@ if [ -f $file_lock ]; then
 fi
 
 echo "$now : Xport Starting! Obtaining lock file $file_lock now!" >> ${logfile_attempt} 2>&1
-
 touch $file_lock
 
-#echo $logfile
-
-#echo $timestamp >> ${logfile} 2>&1
-
-source /daq/software/products/setup
-setup root v6_22_06a -q e20:p383b:prof
+# need to source ROOT to get pyROOT
+SPACK_ENV="/daq/software/spack_packages/spack/current/NULL/share/spack/setup-env.sh"
+source ${SPACK_ENV}
+SPACK_ARCH="linux-$(spack arch --operating-system 2>/dev/null)-x86_64_v2"   
+spack load root@6.28.10 %gcc@12.2.0 arch=${SPACK_ARCH} >> ${logfile_attempt} 2>&1
 
 (( $(pip3 freeze |grep requests |wc -l) )) ||  { echo "requests is missing; installing requests..."; pip3 install --user requests; }
 
 #python3 /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/Xporter.py /data/daq /data/fts_dropbox none >> ${logfile} 2>&1
-python3 -u /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/Xporter.py /data/daq /data/fts_dropbox none sbndaq_v0_04_03 DataXportTesting_03Feb2020 >> ${logfile} 2>&1
+python3 -u /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/Xporter.py /data/daq /data/fts_dropbox none sbndaq_v1_10_01 DataXport_20240913 >> ${logfile} 2>&1
 #python3 /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/Xporter.py /data/daq /data/fts_dropbox none sbndaq_v0_04_03 DataXportTesting_03Feb2020 
 
-
-#echo "done?"
-
 echo "$now : Xport Finished! Releasing lock file $file_lock now!" >> ${logfile_attempt} 2>&1
-
 rm $file_lock
 
 exit 0
