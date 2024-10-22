@@ -1,33 +1,35 @@
 #import modules
-#
 import os
 import sys
 import time
-import safe
-from runperiod import runperiod
+from datetime import datetime
 import SAMUtilities
 import json
 import re
-from datetime import datetime
-
 import offline_run_history
-import ROOT
 from ROOT import TFile,TTree
+
 #
-# Begin SAM metadata function
+# Begin SAM metadata function:
+# builds file metadata starting from file name
+# and DAQ configuration stored in run history db
 #
+
 def SAM_metadata(filename, projectvers, projectname):
     "Subroutine to write out SAM information"
     
     metadata = {}
-
-    #get filesize
-    metadata["file_size"] = os.stat(filename).st_size 
-    
-    #get file name
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     fname = filename.split("/")[-1]
+    
+    print("%s Preparing metadata for %s" % (now,fname))   
+
+    #get file name
     metadata["file_name"] = fname 
 
+    #get filesize
+    #metadata["file_size"] = os.stat(filename).st_size 
+    
     #file type
     metadata["file_type"] = "data" 
 
@@ -37,10 +39,10 @@ def SAM_metadata(filename, projectvers, projectname):
     #file tier is rawdata
     metadata["data_tier"] = "raw"
 
-    #
+    #detector location
     metadata["sbn_dm.detector"] = "sbn_fd"  
 
-    #file stream [beam trigger]
+    #file data stream
     stream = "unknown"
     for part in fname.split("_"):
         if(part.find("fstrm")==0):
@@ -55,38 +57,51 @@ def SAM_metadata(filename, projectvers, projectname):
         if (part.find("run")==0): 
             run_num = int(part[3:])
             break
-    print("RunNum = %d" % run_num)
-
-    metadata["runs"] = [ [ run_num , "physics"] ] 
+    print("run_number = %d" % run_num)
 
     #checksum
-    checksum = SAMUtilities.adler32_crc(filename)
-    checksumstr = "enstore:%s" % checksum
+    #checksum = SAMUtilities.adler32_crc(filename)
+    #checksumstr = "enstore:%s" % checksum
+    #print("Checksum = %s" % checksumstr)
+    #metadata["checksum"] = [ checksumstr ]  
 
-    print("Checksum = %s" % checksumstr)
-
-    #time
-    gmt = time.gmtime(os.stat(filename).st_mtime)
-    time_tuple =time.struct_time(gmt) #strftime("%d-%b-%Y %H:%M:%S",gmt)
+    #creation time
+    #gmt = time.gmtime(os.stat(filename).st_mtime)
+    #time_tuple =time.struct_time(gmt) #strftime("%d-%b-%Y %H:%M:%S",gmt)
     
-    metadata["sbn_dm.file_year"] = time_tuple[0] 
-    metadata["sbn_dm.file_month"] = time_tuple[1] 
-    metadata["sbn_dm.file_day"] = time_tuple[2] 
-
-    #print "Creation time:", timestr
-
-    metadata["checksum"] = [ checksumstr ]  
-    
-    #ICARUS specific fields for bookkeping 
+    #metadata["sbn_dm.file_year"] = time_tuple[0] 
+    #metadata["sbn_dm.file_month"] = time_tuple[1] 
+    #metadata["sbn_dm.file_day"] = time_tuple[2] 
+   
+    # ICARUS project stage
+    metadata["icarus_project.stage"] = "daq"
 
     try:
-        result=offline_run_history.RunHistoryiReader().read(run_num)
-        dictionary={**result[1]}
 
-        if len(dictionary)==0:
-            print("...pending run records failed. trying run records")
-            result = offline_run_history.RunHistoryiReader(ucondb_uri='https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records/configuration/key=%d').read(run_num)
-            dictionary={**result[1]}
+	# try to extract the DAQ configuration from the run history db
+        # lots of info can be extracted just from config name	       
+        result = offline_run_history.RunHistoryiReader().read(run_num)
+
+        # errcode = 0 (all good), < 0 (db connection issues)
+        # errcode > 0 (error count for missing fields)
+        errcode, dictionary = result
+
+        if errcode < 0:
+            print("... search in pending run records db failed: %s" % errcode)
+            print(dictionary['error'])
+	
+	    # try the run_records db instead of the pending one
+            print("... trying search in run records db")
+            run_records_uri = 'https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records/configuration/key=%d'
+            result = offline_run_history.RunHistoryiReader(ucondb_uri=run_records_uri).read(run_num)
+            errcode, dictionary = result
+
+            if errcode < 0:
+                print('X_SAM_Metadata.py exception: %s' % dictionary['error'] )
+                print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Failed to connect to RunHistoryReader")
+                raise
+
+
 
         version = dictionary['projectversion']
 
@@ -110,16 +125,15 @@ def SAM_metadata(filename, projectvers, projectname):
 
     except KeyError as e:
         print("X_SAM_Metadata.py exception: "+str(e))
-        print(datetime.now().strftime("%T"), "Missing metadata value in database")
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Missing metadata value in database")
         raise
 
     except Exception as e:
         print('X_SAM_Metadata.py exception: '+ str(e))
-        print(datetime.now().strftime("%T"), "Failed to connect to RunHistoryReader")
         raise    
         
-    metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
 
+    metadata["runs"] = [ [ run_num , "physics"] ] 
        
     # beam options
     beambnb = "bnb"
@@ -173,83 +187,3 @@ def SAM_metadata(filename, projectvers, projectname):
         raise
 
     return json.dumps(metadata)
-
-
-#comment out the rest for now
-
- 
-#    run_num = filename.split("_")
-#
-#    period = filename.rfind(".")
-#    if (period < 0):
-#        print "No suffix"
-#        return False
-#    suffix = filename[period+1:len(filename)]
-#    if (suffix == "root"):
-#        fileformat = "artroot"
-#    else:
-#        print "Unknown suffix:", suffix
-#        return False
-#    #
-#    # get checksum
-#    #   remove checksum calculation from .json file
-#    checksum = SAMUtilities.adler32_crc(filename)
-#    #    print "Checksum:", checksum
-#    #
-#    # get modified time
-#    #
-#    timestr = SAMUtilities.timestring(os.stat(filename).st_mtime)
-#    #    print "Creation time:", timestr
-#    #
-#    # open SAM metadata file for writing
-#    #
-#    jj=filename.rfind("/")
-#    if(jj<0):
-#        jj=0
-#    dropbox = dropboxdir+filename[jj:]+".json"
-#    #    print dropbox
-#    sf = open(dropbox,"w")
-#    #    print "SAM file is open"
-#    #
-#    # Write pyton headers for SAM
-#    #
-#    sf.write('{\n')
-#    #
-#    # Write SAM metadata
-#    #
-#    sf.write('\t"file_name" : "'+filename[jj:]+'",\n')
-#    sf.write('\t"file_size" : '+str(filesize)+',\n')
-#    sf.write('\t"file_type" : "data",\n')
-#    sf.write('\t"file_format" : "'+fileformat+'",\n')
-#    sf.write('\t"data_tier" : "raw",\n')
-#    sf.write('\t"group" : "lariat",\n')
-#    sf.write('\t"checksum": [ "enstore:'+checksum+'" ],\n')
-#    sf.write('\t"event_count" : 1,\n')
-#    sf.write('\t"first_event" : '+safe.subrun+',\n')
-#    sf.write('\t"last_event" : '+safe.subrun+',\n')
-#    sf.write('\t"start_time" : "'+timestr+'",\n')
-#    sf.write('\t"end_time" : "'+timestr+'",\n')
-#    #
-#    #Experiment specific fields
-#    #
-#    #
-#    # fcl table not included
-#    # project table not included
-#    # filter table not included
-#    #
-#    #run number strut
-#    #
-#    sf.write('\t'+'"runs" : [ ['+safe.run+', '+safe.subrun+', "'+'physics'+'" ] ],\n' )
-#    #
-#    # run period
-#    #
-#    sf.write('\t"run.period" : "'+runperiod(int(safe.run))+'"\n')
-#    #
-#    # Write SAM footer data
-#    #
-#
-#    sf.write("}\n")
-#    sf.close()
-#
-#    #    print("SAM footer data written and file closed")
-#    return True
