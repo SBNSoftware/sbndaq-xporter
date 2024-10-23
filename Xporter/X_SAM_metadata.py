@@ -28,7 +28,7 @@ def SAM_metadata(filename, projectvers, projectname):
     metadata["file_name"] = fname 
 
     #get filesize
-    #metadata["file_size"] = os.stat(filename).st_size 
+    metadata["file_size"] = os.stat(filename).st_size 
     
     #file type
     metadata["file_type"] = "data" 
@@ -50,6 +50,14 @@ def SAM_metadata(filename, projectvers, projectname):
             break
     print("data_stream = '%s'"%stream)
     metadata["data_stream"] = stream  
+    
+    #beam type
+    beam = "none"
+    if (stream=='bnbmajority' or stream=='bnbminbias'):
+       beam = "BNB"
+    elif (stream=='numimajority' or stream=='numiminbias'):
+       beam = "NUMI"
+    metadata["sbn_dm.beam_type"] = beam
 
     #get run number from file name
     run_num = 0
@@ -60,18 +68,18 @@ def SAM_metadata(filename, projectvers, projectname):
     print("run_number = %d" % run_num)
 
     #checksum
-    #checksum = SAMUtilities.adler32_crc(filename)
-    #checksumstr = "enstore:%s" % checksum
-    #print("Checksum = %s" % checksumstr)
-    #metadata["checksum"] = [ checksumstr ]  
+    checksum = SAMUtilities.adler32_crc(filename)
+    checksumstr = "enstore:%s" % checksum
+    print("Checksum = %s" % checksumstr)
+    metadata["checksum"] = [ checksumstr ]  
 
     #creation time
-    #gmt = time.gmtime(os.stat(filename).st_mtime)
-    #time_tuple =time.struct_time(gmt) #strftime("%d-%b-%Y %H:%M:%S",gmt)
+    gmt = time.gmtime(os.stat(filename).st_mtime)
+    time_tuple =time.struct_time(gmt) #strftime("%d-%b-%Y %H:%M:%S",gmt)
     
-    #metadata["sbn_dm.file_year"] = time_tuple[0] 
-    #metadata["sbn_dm.file_month"] = time_tuple[1] 
-    #metadata["sbn_dm.file_day"] = time_tuple[2] 
+    metadata["sbn_dm.file_year"] = time_tuple[0] 
+    metadata["sbn_dm.file_month"] = time_tuple[1] 
+    metadata["sbn_dm.file_day"] = time_tuple[2] 
    
     # ICARUS project stage
     metadata["icarus_project.stage"] = "daq"
@@ -96,84 +104,103 @@ def SAM_metadata(filename, projectvers, projectname):
             result = offline_run_history.RunHistoryiReader(ucondb_uri=run_records_uri).read(run_num)
             errcode, dictionary = result
 
+            # if failed on both cases, raise an exception!
             if errcode < 0:
-                print('X_SAM_Metadata.py exception: %s' % dictionary['error'] )
-                print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Failed to connect to RunHistoryReader")
-                raise
+                raise Exception(dictionary['error'])
 
+        if errcode > 0:
+            print("%s required field(s) not found by RunHistoryReader!" % errcode)
 
-
+	# get project name and version
         version = dictionary['projectversion']
-
-        metadata["icarus_project.version"] = version.rsplit()[0] #"raw_%s" % projectvers  
-
+        if "Error" in version:
+            raise KeyError(version)
+        metadata["icarus_project.version"] = version.rsplit()[0] # "v_10_02" % projectvers  
         metadata["icarus_project.name"] = "icarus_daq_%s" % version.rsplit()[0] #projectname
 
+	# get configuration name 
+        configuration = dictionary['configuration']
+        if "Error" in configuration:
+            raise KeyError(configuration)
         metadata["configuration.name"] = dictionary['configuration']
-        
-        if "Error" in metadata["icarus_project.version"]:
-            raise Exception(version)
 
-        if "Physics"!=metadata["configuration.name"][0:7] and "Overlays"!=metadata["configuration.name"][0:8] and (metadata["data_stream"]=="offbeamnumiminbias" or metadata["data_stream"]=="offbeambnbminbias"):
-            metadata["data_stream"]="offbeamminbiascalib"
-	#we should be able to do the latter, but we (Ivan, Donatella, Matteo, and Wes) decided 7 Mar 2024 to not distinguish here
-        #since there _could_ __potentially__ be something different
-        #elif metadata["configuration.name"][0:7]=="Physics" and (metadata["data_stream"]=="offbeamnumiminbias" or metadata["data_stream"]=="offbeambnbminbias"):
-	#    metadata["data_stream"]="offbeamminbias"
-        
-        s = dictionary['configuration'].lower()
+	# get components in the configuration
+        components = dictionary['components']
+        if "Error" in components:
+            raise KeyError(components)
+
+        ##### TODO: FILL HERE METADATA VALUES STORING 
+        # NUMBER OF COMPONENTS FOR SUBSYSTEM        
+        tpcww = SAMUtilities.count_components(components,pattern="icarustpcww")
+        tpcwe = SAMUtilities.count_components(components,pattern="icarustpcwe")
+        tpcee = SAMUtilities.count_components(components,pattern="icarustpcew")
+        tpcew = SAMUtilities.count_components(components,pattern="icarustpcee")
+        pmt = SAMUtilities.count_components(components,pattern="icaruspmt")
+        crt = SAMUtilities.count_components(components,pattern="icaruscrt")
+        print( tpcww, tpcwe, tpcew, tpcee, pmt, crt)
 
     except KeyError as e:
-        print("X_SAM_Metadata.py exception: "+str(e))
+        print("X_SAM_Metadata.py exception: "+ str(e))
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Missing metadata value in database")
         raise
 
     except Exception as e:
-        print('X_SAM_Metadata.py exception: '+ str(e))
+        print("X_SAM_Metadata.py exception: "+ str(e))
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Failed to read from RunHistoryReader")
         raise    
-        
-
-    metadata["runs"] = [ [ run_num , "physics"] ] 
+     
+    # get run type based on configuration name
+    # options: physics, calibration, laser, test 
+    # config names tipycally contain only one of these (except test)
+    # however, if test is present, must be test  
+    config = metadata['configuration.name'].lower()
+    run_type = "physics"
+    if("calibration" in config):
+        run_type = "calibration"
+    if("laser" in config):
+        run_type = "laser"
+    if("test" in config): #do last, priority over other choices
+        run_type = "test"
+    metadata["runs"] = [ [ run_num , run_type] ] 
        
-    # beam options
-    beambnb = "bnb"
-    beamnumi = "numi"
-    laser = "laser"
-    zerobias = "zerobias"
-    bnbnumi = "common"
-
-    #if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb' or stream=='bnbmajority' or stream=='bnbminbias'):
-    ## MV: we no longer use beam-specific configuration names, stop using it to set the beam type
-    if (stream=='bnb' or stream=='bnbmajority' or stream=='bnbminbias'):
-       beam = "BNB"
-    #elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi' or stream=='numimajority' or stream=='numiminbias'):
-    ## MV: we no longer use beam-specific configuration names, stop using it to set the beam type
-    elif (stream=='numi' or stream=='numimajority' or stream=='numiminbias'):
-       beam = "NUMI"
-    elif ( zerobias or laser) in s:
-       beam = "none"
-    elif ('offbeam' in stream):
-       beam = "none"
-    elif (bnbnumi) in s:
-       beam = "mixed"
-    else:
-       beam = "unknown"
-
-    metadata["sbn_dm.beam_type"] = beam
-
-    #for event count:
+    # get event count:
     fFile = TFile(filename,"READ")
-    fTree= fFile.Get("Events")
+    fTree = fFile.Get("Events")
     nEvents = fTree.GetEntries()
-    print("number of event in the root file %d" % nEvents)
-
+    print("Number of event in the root file %d" % nEvents)
     metadata["sbn_dm.event_count"] = nEvents
 
-    # components list
-    #s = dictionary.get('components').replace('[','').replace(']','')
-    #metadata["icarus.components"] = s.split(', ')
+    # final consistency checks: match between configuration names and output data streams (filenames)
+    # this is to alert of possible problems that may contaminate good data streams
 
-    #last check before releasing metadata into the wild
+    # If "BNB" or NUMI" are in the config name, streams must match
+    # e.g: "Calibraton_MAJORITY_NUMI_*" produces only (offbeam)numi{majority,minbias} streams
+    if ("numi" in config and stream != "offbeamnumimajority" and stream != "offbeamnumiminbias" and 
+                             stream != "numimajority" and stream != "numiminbias" and stream != "unknown"):
+        print("X_SAM_Metadata.py exception: 'data_stream' does not match configuration name.")
+        print("Config '%s' contains '%s' in name but produced a '%s' file." % (config,"numi",stream))
+        print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
+        raise
+
+    elif ("bnb" in config and stream != "offbeambnbmajority" and stream != "offbeambnbminbias" and
+                              stream != "bnbmajority" and stream != "bnbminbias" and stream != "unknown"):
+        print("X_SAM_Metadata.py exception: 'data_stream' does not match configuration name.")
+        print("Config '%s' contains '%s' in name but produced a '%s' file." % (config,"bnb",stream))
+        print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
+        raise
+   
+    # if data_stream is "offbeamnumiminbias" or "offbeambnbminbias", file must come from Physics or Overlays configs
+    # all other offbeammininumbias (coming from standard calibrations) must go to offbeamminbiascalib
+    # however provide exception for specific BNB or NuMI calibrations that might have those streams empty but defined 
+    if ((stream=="offbeamnumiminbias" or stream=="offbeambnbminbias") and ("physics" not in config) and 
+                                      ("overlays" not in config) and ("bnb" not in config) and ("numi" not in config)):
+        print("X_SAM_Metadata.py exception: 'data_stream' does not match configuration name.")
+        print("Config '%s' should not put offbeamminbias in '%s', but rather in 'offbeamminbiascalib'." % (config,stream))
+        print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
+        raise
+
+    # last check before releasing metadata into the wild
+    # make sure all the important fields are there
     try:
         metadata["icarus_project.version"]
         metadata["icarus_project.name"]
