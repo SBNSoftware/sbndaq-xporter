@@ -177,16 +177,16 @@ def SAM_metadata(filename, projectvers, projectname):
     # e.g: "Calibraton_MAJORITY_NUMI_*" produces only (offbeam)numi{majority,minbias} streams
     if ("numi" in config and stream != "offbeamnumimajority" and stream != "offbeamnumiminbias" and 
                              stream != "numimajority" and stream != "numiminbias" and stream != "unknown"):
-        print("X_SAM_Metadata.py exception: 'data_stream' does not match configuration name.")
-        print("Config '%s' contains '%s' in name but produced a '%s' file." % (config,"numi",stream))
+        print("X_SAM_Metadata.py exception: Config '%s' contains '%s' but produced '%s'." % (config,"numi",stream))
         print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "'data_stream' does not match configuration name.")
         raise
 
     elif ("bnb" in config and stream != "offbeambnbmajority" and stream != "offbeambnbminbias" and
                               stream != "bnbmajority" and stream != "bnbminbias" and stream != "unknown"):
-        print("X_SAM_Metadata.py exception: 'data_stream' does not match configuration name.")
-        print("Config '%s' contains '%s' in name but produced a '%s' file." % (config,"bnb",stream))
+        print("X_SAM_Metadata.py exception: Config '%s' contains '%s' but produced '%s'." % (config,"bnb",stream))
         print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "'data_stream' does not match configuration name.")
         raise
    
     # if data_stream is "offbeamnumiminbias" or "offbeambnbminbias", file must come from Physics or Overlays configs
@@ -194,9 +194,9 @@ def SAM_metadata(filename, projectvers, projectname):
     # however provide exception for specific BNB or NuMI calibrations that might have those streams empty but defined 
     if ((stream=="offbeamnumiminbias" or stream=="offbeambnbminbias") and ("physics" not in config) and 
                                       ("overlays" not in config) and ("bnb" not in config) and ("numi" not in config)):
-        print("X_SAM_Metadata.py exception: 'data_stream' does not match configuration name.")
-        print("Config '%s' should not put offbeamminbias in '%s', but rather in 'offbeamminbiascalib'." % (config,stream))
+        print("X_SAM_Metadata.py exception: Config '%s' should not put offbeamminbias in '%s', but in 'offbeamminbiascalib'." % (config,stream))
         print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "'data_stream' does not match configuration name.")
         raise
 
     # last check before releasing metadata into the wild
