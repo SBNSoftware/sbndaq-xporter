@@ -129,16 +129,21 @@ def SAM_metadata(filename, projectvers, projectname):
         if "Error" in components:
             raise KeyError(components)
 
-        ##### TODO: FILL HERE METADATA VALUES STORING 
-        # NUMBER OF COMPONENTS FOR SUBSYSTEM        
+	# get number of components per subsystem
         tpcww = SAMUtilities.count_components(components,pattern="icarustpcww")
         tpcwe = SAMUtilities.count_components(components,pattern="icarustpcwe")
         tpcee = SAMUtilities.count_components(components,pattern="icarustpcew")
         tpcew = SAMUtilities.count_components(components,pattern="icarustpcee")
         pmt = SAMUtilities.count_components(components,pattern="icaruspmt")
-        crt = SAMUtilities.count_components(components,pattern="icaruscrt")
-        print( tpcww, tpcwe, tpcew, tpcee, pmt, crt)
-
+        crt = SAMUtilities.count_components(components,pattern="icaruscrt") 
+        metadata["icarus_components.tpc"] = tpcww+tpcwe+tcpew+tpcee
+        metadata["icarus_components.tpcww"] = tpcww
+        metadata["icarus_components.tpcwe"] = tpcwe
+        metadata["icarus_components.tpcew"] = tcpew
+        metadata["icarus_components.tpcee"] = tpcee
+        metadata["icarus_components.pmt"] = pmt
+        metadata["icarus_components.crt"] = crt
+       
     except KeyError as e:
         print("X_SAM_Metadata.py exception: "+ str(e))
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Missing metadata value in database")
