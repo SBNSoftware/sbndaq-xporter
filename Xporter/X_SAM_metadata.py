@@ -132,18 +132,33 @@ def SAM_metadata(filename, projectvers, projectname):
 	# get number of components per subsystem
         tpcww = SAMUtilities.count_components(components,pattern="icarustpcww")
         tpcwe = SAMUtilities.count_components(components,pattern="icarustpcwe")
-        tpcee = SAMUtilities.count_components(components,pattern="icarustpcew")
-        tpcew = SAMUtilities.count_components(components,pattern="icarustpcee")
-        pmt = SAMUtilities.count_components(components,pattern="icaruspmt")
-        crt = SAMUtilities.count_components(components,pattern="icaruscrt") 
-        metadata["icarus_components.tpc"] = tpcww+tpcwe+tcpew+tpcee
+        tpcew = SAMUtilities.count_components(components,pattern="icarustpcew")
+        tpcee = SAMUtilities.count_components(components,pattern="icarustpcee")
+        pmtww = SAMUtilities.count_components(components,pattern="icaruspmtww")
+        pmtwe = SAMUtilities.count_components(components,pattern="icaruspmtwe")
+        pmtew = SAMUtilities.count_components(components,pattern="icaruspmtew")
+        pmtee = SAMUtilities.count_components(components,pattern="icaruspmtee")
+        crttop = SAMUtilities.count_components(components,pattern="icaruscrttop") 
+        crtside = SAMUtilities.count_components(components,pattern="icaruscrt0") 
+        crtbttm = SAMUtilities.count_components(components,pattern="icaruscrtbottom") 
+        
+        metadata["icarus_components.tpc"] = tpcww+tpcwe+tpcew+tpcee
         metadata["icarus_components.tpcww"] = tpcww
         metadata["icarus_components.tpcwe"] = tpcwe
-        metadata["icarus_components.tpcew"] = tcpew
+        metadata["icarus_components.tpcew"] = tpcew
         metadata["icarus_components.tpcee"] = tpcee
-        metadata["icarus_components.pmt"] = pmt
-        metadata["icarus_components.crt"] = crt
-       
+
+        metadata["icarus_components.pmt"] = pmtww+pmtwe+pmtwe+pmtee
+        metadata["icarus_components.pmtww"] = pmtww
+        metadata["icarus_components.pmtwe"] = pmtwe
+        metadata["icarus_components.pmtew"] = pmtew
+        metadata["icarus_components.pmtee"] = pmtee
+        
+        metadata["icarus_components.crt"] = crttop+crtside+crtbttm
+        metadata["icarus_components.crttop"] = crttop
+        metadata["icarus_components.crtside"] = crtside
+        metadata["icarus_components.crtbttm"] = crtbttm
+
     except KeyError as e:
         print("X_SAM_Metadata.py exception: "+ str(e))
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Missing metadata value in database")
