@@ -1,13 +1,12 @@
 #
-# Various functions to make SAM files
+# Various support functions to make SAM files
 #
-#
-# Script to calculate Adler-32 checksum
-#
+
 import sys
 from zlib import adler32
 import time
 
+# Calculate Adler-32 checksum
 def adler32_crc(filename):
     "Calculate checksum for file filename)"
 
@@ -23,18 +22,20 @@ def adler32_crc(filename):
     if crc < 0:
         crc = ( crc & 0x7FFFFFFF) | 0x80000000
     return str(crc)
-#
-# End of checksum routine 
-#
-# 
-# Routine to make properly formatted date
-#
+
+# Make properly formatted date
 def timestring(tt):
     " Output a time string that is to SAM's liking"
     gmt = time.gmtime(tt)
-    timestr =time.strftime("%d-%b-%Y %H:%M:%S",gmt)
+    timestr = time.strftime("%d-%b-%Y %H:%M:%S",gmt)
     return timestr
-#
-# end of routine
-#
- 
+
+# Count configuration components matching pattern
+def count_components(components, pattern):
+    " Count the number of DAQ components matching name pattern"
+    sanitized_list = components.lstrip("[").rstrip("]").split(",")
+    counter=0
+    for c in sanitized_list:
+        if pattern in c:
+            counter+=1
+    return counter
