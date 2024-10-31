@@ -194,16 +194,14 @@ def SAM_metadata(filename, projectvers, projectname):
     # this is to alert of possible problems that may contaminate good data streams
 
     # If "BNB" or NUMI" are in the config name, streams must match
-    # e.g: "Calibraton_MAJORITY_NUMI_*" produces only (offbeam)numi{majority,minbias} streams
-    if ("numi" in config and stream != "offbeamnumimajority" and stream != "offbeamnumiminbias" and 
-                             stream != "numimajority" and stream != "numiminbias" and stream != "unknown"):
+    # e.g: "Calibraton_MAJORITY_NUMI_*" produces only (offbeam)numimajority streams
+    if ("numi" in config and "majority" in config and stream != "offbeamnumimajority" and stream != "unknown"):
         print("X_SAM_Metadata.py exception: Config '%s' contains '%s' but produced '%s'." % (config,"numi",stream))
         print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Data stream does not match configuration name.")
         raise
 
-    elif ("bnb" in config and stream != "offbeambnbmajority" and stream != "offbeambnbminbias" and
-                              stream != "bnbmajority" and stream != "bnbminbias" and stream != "unknown"):
+    if ("bnb" in config and "majority" in config and stream != "offbeambnbmajority" and stream != "unknown"):
         print("X_SAM_Metadata.py exception: Config '%s' contains '%s' but produced '%s'." % (config,"bnb",stream))
         print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Data stream does not match configuration name.")
@@ -211,17 +209,25 @@ def SAM_metadata(filename, projectvers, projectname):
    
     # if data_stream is "offbeamnumiminbias" or "offbeambnbminbias", file must come from Physics or Overlays configs
     # all other offbeammininumbias (coming from standard calibrations) must go to offbeamminbiascalib
-    # however provide exception for specific BNB or NuMI calibrations that might have those streams empty but defined 
-    if ((stream=="offbeamnumiminbias" or stream=="offbeambnbminbias") and ("physics" not in config) and 
-                                      ("overlays" not in config) and ("bnb" not in config) and ("numi" not in config)):
+    if ((stream=="offbeamnumiminbias" or stream=="offbeambnbminbias") and ("physics" not in config) and ("overlays" not in config)):
         print("X_SAM_Metadata.py exception: Config '%s' shouldn't use offbeamminbias in '%s', but 'offbeamminbiascalib'." % (config,stream))
         print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Data stream does not match configuration name.")
         raise
 
+    # if "unknown" stream has non-zero events, event filtering and output modules are mismatched.
+    if (stream=="unknown" and nEvents>0):
+        print("X_SAM_Metadata.py exception: Config %s is dropping events in '%s'." % (config,stream))
+        print("Please check the event filtering  and filenames in EventBuilder_standard.fcl!")
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Non-empty 'unknown' stream file.")
+        raise
+
     # last check before releasing metadata into the wild
     # make sure all the important fields are there
     try:
+        metadata["icarus_components.tpc"]
+        metadata["icarus_components.pmt"]
+        metadata["icarus_components.crt"]
         metadata["icarus_project.version"]
         metadata["icarus_project.name"]
         metadata["icarus_project.stage"]
