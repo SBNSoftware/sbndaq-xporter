@@ -25,8 +25,8 @@ SPACK_ARCH="linux-$(spack arch --operating-system 2>/dev/null)-x86_64_v2"
 
 # hardcoded hash map for available ROOT builds 
 declare -A build_hash_map=(
-    [scientific7]="/qggnikr"
-    [almalinux9]="/22obn26"
+    [scientific7]="/zvbmgig"
+    [almalinux9]="/se7z5bo"
 )
 ROOT_BUILD_HASH="${build_hash_map[$(spack arch --operating-system 2>/dev/null)]:-}"
 
