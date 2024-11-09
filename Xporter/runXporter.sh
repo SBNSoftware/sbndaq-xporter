@@ -23,7 +23,7 @@ SPACK_ENV="/daq/software/spack_packages/spack/current/NULL/share/spack/setup-env
 source ${SPACK_ENV} >> ${logfile_attempt} 2>&1  
 
 SPACK_ARCH="linux-$(spack arch --operating-system 2>/dev/null)-x86_64_v2"
-ROOT_BUILD_HASH=$(spack find --format '{architecture} /{hash:7}' root 2>/dev/null | grep ${SPACK_ARCH} | head -n 1 | awk '{print $2}')
+ROOT_BUILD_HASH=$(spack find --format '{architecture} /{hash:7}' root 2>/dev/null | grep -m 1 ${SPACK_ARCH} | awk '{print $2}')
 
 echo "$now : Found ROOT build hash '$ROOT_BUILD_HASH' for ${SPACK_ARCH}" >> ${logfile_attempt} 2>&1
 
@@ -32,14 +32,14 @@ echo "$now : Found ROOT build hash '$ROOT_BUILD_HASH' for ${SPACK_ARCH}" >> ${lo
 # report in logfile each attempt
 for i in {1..10}; do
   echo "$now : Sourcing Spack ROOT build '$ROOT_BUILD_HASH' for ${SPACK_ARCH} (try $i)" >> ${logfile_attempt} 2>&1
-  if [ -n "$ROOT_BUILD_HASH" ] || spack load ${ROOT_BUILD_HASH} >> ${logfile_attempt} 2>&1;
+  if [ -n "$ROOT_BUILD_HASH" ] && spack load ${ROOT_BUILD_HASH} >> ${logfile_attempt} 2>&1;
   then
     echo "$now : Loaded ROOT build '$ROOT_BUILD_HASH' for ${SPACK_ARCH}" >> ${logfile_attempt} 2>&1;
     break
   else
     echo "$now : [Error] \"spack load ${ROOT_BUILD_HASH}\" failed. Retrying..." >> ${logfile_attempt} 2>&1;
     sleep $((4 + RANDOM % 3))
-    ROOT_BUILD_HASH=$(spack find --format '{architecture} /{hash:7}' root 2>/dev/null | grep ${SPACK_ARCH} | head -n 1 | awk '{print $2}')
+    ROOT_BUILD_HASH=$(spack find --format '{architecture} /{hash:7}' root 2>/dev/null | grep -m 1 ${SPACK_ARCH} | awk '{print $2}')
     sleep $((4 + RANDOM % 3))
   fi
 done
