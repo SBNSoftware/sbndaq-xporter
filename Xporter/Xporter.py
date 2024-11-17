@@ -93,7 +93,7 @@ def move_files(files,destdir,moveFile):
         fname = f.split("/")[-1]
         print("Will move/copy %s to %s" % (f,destdir+fname))
 
-        if(len(glob.glob(dropboxdir+fname))>0):
+        if(len(glob.glob(destdir+fname))>0):
             print("File %s already in %s" % (fname,destdir))
             continue
 
@@ -141,7 +141,7 @@ def write_metadata_files(files,pv,pn):
 
 def main():
 
-    now = datetime.now().now.strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print("%s : Running Xporter.py" % now)
 
     # Get directory of Xporter.py
