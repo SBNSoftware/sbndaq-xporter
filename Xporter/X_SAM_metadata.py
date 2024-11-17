@@ -57,6 +57,8 @@ def SAM_metadata(filename, projectvers, projectname):
        beam = "BNB"
     elif (stream=='numimajority' or stream=='numiminbias'):
        beam = "NUMI"
+    elif (stream=='unknown'):
+       beam = "unknown"
     metadata["sbn_dm.beam_type"] = beam
 
     #get run number from file name
