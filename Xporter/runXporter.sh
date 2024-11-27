@@ -22,6 +22,8 @@ touch $file_lock
 SPACK_ENV="/daq/software/spack_packages/spack/current/NULL/share/spack/setup-env.sh"
 source ${SPACK_ENV} >> ${logfile_attempt} 2>&1  
 
+export SPACK_DISABLE_LOCAL_CONFIG=true
+
 SPACK_ARCH="linux-$(spack arch --operating-system 2>/dev/null)-x86_64_v2"
 ROOT_BUILD_HASH=$(spack find --format '{architecture} /{hash:7}' root 2>/dev/null | grep -m 1 ${SPACK_ARCH} | awk '{print $2}')
 
