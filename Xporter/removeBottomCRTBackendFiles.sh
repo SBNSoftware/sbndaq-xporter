@@ -1,7 +1,8 @@
 #!/bin/bash
 
 timestamp=`date +%Y_%m_%d_%H_%M`
-echo "Running removeBottomCRTBackendFiles.sh at ${timestamp}"
+host=`hostname -s`
+echo "Running removeBottomCRTBackendFiles.sh on ${host} at ${timestamp}"
 
 # 2024-03-21 MV: commenting out the ssh command, cronjobs don't pick up kerberos tickets easily 
 # so moving to running this directly on icarus_crt11
