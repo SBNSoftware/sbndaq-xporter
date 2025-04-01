@@ -2,7 +2,6 @@
 # Various support functions to make SAM files
 #
 
-import sys
 from zlib import adler32
 import time
 

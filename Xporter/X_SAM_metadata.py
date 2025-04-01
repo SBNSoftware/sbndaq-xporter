@@ -1,13 +1,11 @@
 #import modules
 import os
-import sys
 import time
-from datetime import datetime
 import SAMUtilities
 import json
-import re
+import logging
 import offline_run_history
-from ROOT import TFile,TTree
+from ROOT import TFile
 
 #
 # Begin SAM metadata function:
@@ -15,14 +13,13 @@ from ROOT import TFile,TTree
 # and DAQ configuration stored in run history db
 #
 
-def SAM_metadata(filename, projectvers, projectname):
+def SAM_metadata(filename):
     "Subroutine to write out SAM information"
     
     metadata = {}
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     fname = filename.split("/")[-1]
     
-    print("%s Preparing metadata for %s" % (now,fname))   
+    logging.info("Preparing metadata for %s" % (fname))   
 
     #get file name
     metadata["file_name"] = fname 
@@ -48,7 +45,7 @@ def SAM_metadata(filename, projectvers, projectname):
         if(part.find("fstrm")==0):
             stream = part[5:].lower()
             break
-    print("data_stream = '%s'"%stream)
+    logging.info("data_stream = '%s'"%stream)
     metadata["data_stream"] = stream  
     
     #beam type
@@ -67,12 +64,12 @@ def SAM_metadata(filename, projectvers, projectname):
         if (part.find("run")==0): 
             run_num = int(part[3:])
             break
-    print("run_number = %d" % run_num)
+    logging.info("run_number = %d" % run_num)
 
     #checksum
     checksum = SAMUtilities.adler32_crc(filename)
     checksumstr = "enstore:%s" % checksum
-    print("Checksum = %s" % checksumstr)
+    logging.info("Checksum = %s" % checksumstr)
     metadata["checksum"] = [ checksumstr ]  
 
     #creation time
@@ -97,11 +94,11 @@ def SAM_metadata(filename, projectvers, projectname):
         errcode, dictionary = result
 
         if errcode < 0:
-            print("... search in pending run records db failed: %s" % errcode)
-            print(dictionary['error'])
+            logging.warning("... search in pending run records db failed: %s" % errcode)
+            logging.warning(dictionary['error'])
 	
 	        # try the run_records db instead of the pending one
-            print("... trying search in run records db")
+            logging.warning("... trying search in run records db")
             run_records_uri = 'https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records/configuration/key=%d'
             result = offline_run_history.RunHistoryiReader(ucondb_uri=run_records_uri).read(run_num)
             errcode, dictionary = result
@@ -111,7 +108,7 @@ def SAM_metadata(filename, projectvers, projectname):
                 raise Exception(dictionary['error'])
 
         if errcode > 0:
-            print("%s required field(s) not found by RunHistoryReader!" % errcode)
+            logging.error("%s required field(s) not found by RunHistoryReader!" % errcode)
 
 	    # get project name and version
         version = dictionary['projectversion']
@@ -140,13 +137,13 @@ def SAM_metadata(filename, projectvers, projectname):
         #metadata["icarus_components.crt"] = crt
 
     except KeyError as e:
-        print("X_SAM_Metadata.py exception: "+ str(e))
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Missing metadata value in database")
+        logging.error("X_SAM_Metadata.py exception: "+ str(e))
+        logging.error("Missing metadata value in database")
         raise
 
     except Exception as e:
-        print("X_SAM_Metadata.py exception: "+ str(e))
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Failed to read from RunHistoryReader")
+        logging.error("X_SAM_Metadata.py exception: "+ str(e))
+        logging.error("Failed to read from RunHistoryReader")
         raise    
      
     # get run type based on configuration name
@@ -167,7 +164,7 @@ def SAM_metadata(filename, projectvers, projectname):
     fFile = TFile(filename,"READ")
     fTree = fFile.Get("Events")
     nEvents = fTree.GetEntries()
-    print("Number of event in the root file %d" % nEvents)
+    logging.info("Number of event in the root file %d" % nEvents)
     metadata["sbn_dm.event_count"] = nEvents
 
     # final consistency checks: match between configuration names and output data streams (filenames)
@@ -176,30 +173,30 @@ def SAM_metadata(filename, projectvers, projectname):
     # If "BNB" or NUMI" are in the config name, streams must match
     # e.g: "Calibraton_MAJORITY_NUMI_*" produces only (offbeam)numimajority streams
     if ("numi" in config and "majority" in config and stream != "offbeamnumimajority" and stream != "unknown"):
-        print("X_SAM_Metadata.py exception: Config '%s' contains '%s' but produced '%s'." % (config,"numi",stream))
-        print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Data stream does not match configuration name.")
+        logging.error("X_SAM_Metadata.py exception: Config '%s' contains '%s' but produced '%s'." % (config,"numi",stream))
+        logging.error("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
+        logging.error("Data stream does not match configuration name.")
         raise
 
     if ("bnb" in config and "majority" in config and stream != "offbeambnbmajority" and stream != "unknown"):
-        print("X_SAM_Metadata.py exception: Config '%s' contains '%s' but produced '%s'." % (config,"bnb",stream))
-        print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Data stream does not match configuration name.")
+        logging.error("X_SAM_Metadata.py exception: Config '%s' contains '%s' but produced '%s'." % (config,"bnb",stream))
+        logging.error("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
+        logging.error("Data stream does not match configuration name.")
         raise
    
     # if data_stream is "offbeamnumiminbias" or "offbeambnbminbias", file must come from Physics or Overlays configs
     # all other offbeammininumbias (coming from standard calibrations) must go to offbeamminbiascalib
     if ((stream=="offbeamnumiminbias" or stream=="offbeambnbminbias") and ("physics" not in config) and ("overlays" not in config)):
-        print("X_SAM_Metadata.py exception: Config '%s' shouldn't use offbeamminbias in '%s', but 'offbeamminbiascalib'." % (config,stream))
-        print("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Data stream does not match configuration name.")
+        logging.error("X_SAM_Metadata.py exception: Config '%s' shouldn't use offbeamminbias in '%s', but 'offbeamminbiascalib'." % (config,stream))
+        logging.error("Please check filenames in EventBuilder_standard.fcl or change the configuration name!")
+        logging.error("Data stream does not match configuration name.")
         raise
 
     # if "unknown" stream has non-zero events, event filtering and output modules are mismatched.
     if (stream=="unknown" and nEvents>0):
-        print("X_SAM_Metadata.py exception: Config %s is dropping events in '%s'." % (config,stream))
-        print("Please check the event filtering  and filenames in EventBuilder_standard.fcl!")
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Non-empty 'unknown' stream file.")
+        logging.error("X_SAM_Metadata.py exception: Config %s is dropping events in '%s'." % (config,stream))
+        logging.error("Please check the event filtering  and filenames in EventBuilder_standard.fcl!")
+        logging.error("Non-empty 'unknown' stream file.")
         raise
 
     # last check before releasing metadata into the wild
@@ -215,8 +212,8 @@ def SAM_metadata(filename, projectvers, projectname):
         metadata["data_stream"]
         metadata["data_tier"]
     except KeyError as e:
-        print("X_SAM_Metadata.py exception: "+str(e))
-        print("Missing essential metadata for data selection")
+        logging.error("X_SAM_Metadata.py exception: "+str(e))
+        logging.error("Missing essential metadata for data selection")
         raise
 
     return json.dumps(metadata)

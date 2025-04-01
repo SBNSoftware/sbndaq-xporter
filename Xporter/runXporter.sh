@@ -60,7 +60,7 @@ fi
 
 # Run Xporter.py
 echo "$now : Running Xporter..." >> ${logfile_attempt}
-python3 -u /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/Xporter.py /data/daq /data/fts_dropbox sbndaq_v1_10_02 DataXport_2024-10-18 >> ${logfile} 2>&1
+python3 -u /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/Xporter.py /data/daq /data/fts_dropbox ${logfile} >> ${logfile} 2>&1
 
 echo "$now : Xport Finished! Releasing lock file $file_lock now!" >> ${logfile_attempt} 2>&1
 rm $file_lock
