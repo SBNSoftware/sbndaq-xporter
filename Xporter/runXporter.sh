@@ -22,6 +22,8 @@ touch $file_lock
 SPACK_ENV="/daq/software/spack_packages/spack/current/NULL/share/spack/setup-env.sh"
 source ${SPACK_ENV} >> ${logfile_attempt} 2>&1  
 
+export SPACK_DISABLE_LOCAL_CONFIG=true
+
 SPACK_ARCH="linux-$(spack arch --operating-system 2>/dev/null)-x86_64_v2"
 ROOT_BUILD_HASH=$(spack find --format '{architecture} /{hash:7}' root 2>/dev/null | grep -m 1 ${SPACK_ARCH} | awk '{print $2}')
 
@@ -58,7 +60,7 @@ fi
 
 # Run Xporter.py
 echo "$now : Running Xporter..." >> ${logfile_attempt}
-python3 -u /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/Xporter.py /data/daq /data/fts_dropbox none sbndaq_v1_10_02 DataXport_2024-10-18 >> ${logfile} 2>&1
+python3 -u /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/Xporter.py /data/daq /data/fts_dropbox ${logfile} >> ${logfile} 2>&1
 
 echo "$now : Xport Finished! Releasing lock file $file_lock now!" >> ${logfile_attempt} 2>&1
 rm $file_lock

@@ -1,21 +1,27 @@
 import requests
 import re
-run_number = 5458
 
-parameter_spec={"metadata.fcl": {
-          "components":"components",
-          "configuration":"config_name",
-          'projectversion':'sbndaq_commit_or_version'
-          #'start_time':'daqinterface_start_time',
-          #'stop_time':'daqinterface_stop_time'
-    }}
+# List of fhicl files and parameters to look for in the configuration
+# provide also translation for corresponding metadata fields
+parameter_spec = { 
+    "metadata.fcl": 
+    {
+        'components':'components',
+        'configuration':'config_name',
+        'projectversion':'sbndaq_commit_or_version',
+        #'start_time':'daqinterface_start_time',
+        #'stop_time':'daqinterface_stop_time'
+    }
+}
 
+# default uri for the run history (pending run records) database
+# key is the run number
 ucondb_uri = 'https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records_pending/configuration/key=%d'
 
 class RunHistoryiReader:
     def __init__(self,
-            parameter_spec=parameter_spec,
-            ucondb_uri=ucondb_uri):
+                 parameter_spec=parameter_spec,
+                 ucondb_uri=ucondb_uri):
         self.parameter_spec=parameter_spec
         self.ucondb_uri=ucondb_uri
 
@@ -26,12 +32,13 @@ class RunHistoryiReader:
 
     def fetch_clob(self,run_number):
         try:
-            #in case of issues with RunHistory DB, a hotfix to disable SSL certificate checking is to add verify=False option to the get command below
+            #in case of issues with RunHistory DB, a hotfix to disable SSL certificate checking
+            #is to add verify=False option to the get command below
             response = requests.get(self.ucondb_uri%(run_number))
             response.raise_for_status()
             return (0, response.text)
         except requests.exceptions.HTTPError as ex:
-            return (-1, "Http Error: %s"%(ex))
+            return (-1, "HTTP Error: %s"%(ex))
         except requests.exceptions.ConnectionError as ex:
             return (-2 , "Error Connecting: %s"% (ex))
         except requests.exceptions.Timeout as ex:
@@ -73,12 +80,17 @@ class RunHistoryiReader:
             results = {**results, **tmp[1]}
         return (error_count, results)
 
+
 if __name__ == '__main__':
-    my_existing_data={'run_number':run_number }
-    result=RunHistoryiReader().read(run_number)
+
+    # for testing purposes only
+    run_number = 12665
+    my_existing_data = {'run_number':run_number }
+    result = RunHistoryiReader().read(run_number)
+   
     if(result[0]!=0):
         print("ErrorCode=%d."%result[0])
-
-    #merge and print
-    print({**my_existing_data,**result[1]})
+	
+    print(my_existing_data)
+    print(result)
 
