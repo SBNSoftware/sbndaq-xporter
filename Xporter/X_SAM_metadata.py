@@ -88,7 +88,7 @@ def SAM_metadata(filename, projectvers, projectname):
 
     try:
 
-	# try to extract the DAQ configuration from the run history db
+	    # try to extract the DAQ configuration from the run history db
         # lots of info can be extracted just from config name	       
         result = offline_run_history.RunHistoryiReader().read(run_num)
 
@@ -100,7 +100,7 @@ def SAM_metadata(filename, projectvers, projectname):
             print("... search in pending run records db failed: %s" % errcode)
             print(dictionary['error'])
 	
-	    # try the run_records db instead of the pending one
+	        # try the run_records db instead of the pending one
             print("... trying search in run records db")
             run_records_uri = 'https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records/configuration/key=%d'
             result = offline_run_history.RunHistoryiReader(ucondb_uri=run_records_uri).read(run_num)
@@ -113,53 +113,31 @@ def SAM_metadata(filename, projectvers, projectname):
         if errcode > 0:
             print("%s required field(s) not found by RunHistoryReader!" % errcode)
 
-	# get project name and version
+	    # get project name and version
         version = dictionary['projectversion']
         if "Error" in version:
             raise KeyError(version)
         metadata["icarus_project.version"] = version.rsplit()[0] # "v_10_02" % projectvers  
         metadata["icarus_project.name"] = "icarus_daq_%s" % version.rsplit()[0] #projectname
 
-	# get configuration name 
+	    # get configuration name 
         configuration = dictionary['configuration']
         if "Error" in configuration:
             raise KeyError(configuration)
         metadata["configuration.name"] = dictionary['configuration']
 
-	# get components in the configuration
+	    # get components in the configuration
         components = dictionary['components']
         if "Error" in components:
             raise KeyError(components)
 
-	# get number of components per subsystem
-        tpcww = SAMUtilities.count_components(components,pattern="icarustpcww")
-        tpcwe = SAMUtilities.count_components(components,pattern="icarustpcwe")
-        tpcew = SAMUtilities.count_components(components,pattern="icarustpcew")
-        tpcee = SAMUtilities.count_components(components,pattern="icarustpcee")
-        pmtww = SAMUtilities.count_components(components,pattern="icaruspmtww")
-        pmtwe = SAMUtilities.count_components(components,pattern="icaruspmtwe")
-        pmtew = SAMUtilities.count_components(components,pattern="icaruspmtew")
-        pmtee = SAMUtilities.count_components(components,pattern="icaruspmtee")
-        crttop = SAMUtilities.count_components(components,pattern="icaruscrttop") 
-        crtside = SAMUtilities.count_components(components,pattern="icaruscrt0") 
-        crtbttm = SAMUtilities.count_components(components,pattern="icaruscrtbottom") 
-        
-        metadata["icarus_components.tpc"] = tpcww+tpcwe+tpcew+tpcee
-        metadata["icarus_components.tpcww"] = tpcww
-        metadata["icarus_components.tpcwe"] = tpcwe
-        metadata["icarus_components.tpcew"] = tpcew
-        metadata["icarus_components.tpcee"] = tpcee
-
-        metadata["icarus_components.pmt"] = pmtww+pmtwe+pmtwe+pmtee
-        metadata["icarus_components.pmtww"] = pmtww
-        metadata["icarus_components.pmtwe"] = pmtwe
-        metadata["icarus_components.pmtew"] = pmtew
-        metadata["icarus_components.pmtee"] = pmtee
-        
-        metadata["icarus_components.crt"] = crttop+crtside+crtbttm
-        metadata["icarus_components.crttop"] = crttop
-        metadata["icarus_components.crtside"] = crtside
-        metadata["icarus_components.crtbttm"] = crtbttm
+	    # get number of components per subsystem
+        #tpc = SAMUtilities.count_components(components,pattern="icarustpc")
+        #pmt = SAMUtilities.count_components(components,pattern="icaruspmt")
+        #crt = SAMUtilities.count_components(components,pattern="icaruscrt")     
+        #metadata["icarus_components.tpc"] = tpc
+        #metadata["icarus_components.pmt"] = pmt
+        #metadata["icarus_components.crt"] = crt
 
     except KeyError as e:
         print("X_SAM_Metadata.py exception: "+ str(e))
@@ -227,9 +205,9 @@ def SAM_metadata(filename, projectvers, projectname):
     # last check before releasing metadata into the wild
     # make sure all the important fields are there
     try:
-        metadata["icarus_components.tpc"]
-        metadata["icarus_components.pmt"]
-        metadata["icarus_components.crt"]
+        #metadata["icarus_components.tpc"]
+        #metadata["icarus_components.pmt"]
+        #metadata["icarus_components.crt"]
         metadata["icarus_project.version"]
         metadata["icarus_project.name"]
         metadata["icarus_project.stage"]
