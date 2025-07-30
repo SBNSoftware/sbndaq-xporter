@@ -2,7 +2,7 @@
 # Directories to make 
 #
 
-hosts='icarus-evb01 icarus-evb02 icarus-evb03 icarus-evb04 icarus-evb05 icarus-evb06'
+hosts='icarus-evb12'
 for host in $hosts
 do
     echo "Making directories on $host"
