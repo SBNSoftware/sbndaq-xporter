@@ -1,6 +1,0 @@
-MAILTO=wketchum@fnal.gov,mvicenzi@bnl.gov
-#*/1 * * * * ~icarus/FileTransfer/sbndaq-xporter/Xporter/runXporter.sh
-1 */1 * * * ~icarus/FileTransfer/sbndaq-xporter/Xporter/removeOnMonFiles.sh
-2 */1 * * * ~icarus/FileTransfer/sbndaq-xporter/Xporter/removeTestDirFiles.sh
-5 0 */1 * * ~icarus/FileTransfer/sbndaq-xporter/Xporter/removeRootDAQOutFiles.sh
-13 */12 * * * ~icarus/FileTransfer/sbndaq-xporter/Xporter/runManualFTSFileCleanup.sh

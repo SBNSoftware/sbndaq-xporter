@@ -1,5 +1,0 @@
-*/5 * * * * ~/cronjobs/importRunHistory2ArtdaqDB-cron.sh >> /daq/log/dbtools/database-artdaqdb-icarus_v4x_db.log 2>&1
-*/3 * * * * ARTDAQ_DATABASE_TOOLS_ENV=~/.artdaq_database_tools.env ~/cronjobs/copyRunHistory2UconDB-cron.sh >> /daq/log/dbtools/database-ucondb.log 2>&1
-*/3 * * * * ARTDAQ_DATABASE_TOOLS_ENV=~/.artdaq_database_tools_pending.env ~/cronjobs/copyRunHistory2UconDB-cron.sh >> /daq/log/dbtools/database-ucondb-pending.log 2>&1
-* * * * * ~/cronjobs/runrecords_monitor.sh >> /daq/log/grafana/runrecords_monitor.log 2>&1
-* */5 * * * ~/cronjobs/disk_monitor.sh >> /daq/log/grafana/disk_monitor.log 2>&1

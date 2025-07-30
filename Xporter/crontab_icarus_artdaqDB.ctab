@@ -1,0 +1,4 @@
+MAILTO=wketchum@fnal.gov,mvicenzi@bnl.gov
+*/45 * * * * ~/cronjobs/importRunHistory2ArtdaqDB-cron.sh >> /daq/log/dbtools/database-artdaqdb-icarus_v4x_db.log 2>&1
+*/17 * * * * ARTDAQ_DATABASE_TOOLS_ENV=~/.artdaq_database_tools.env ~/cronjobs/copyRunHistory2UconDB-cron-2.sh >> /daq/log/dbtools/database-ucondb.log 2>&1
+*/12 * * * * ARTDAQ_DATABASE_TOOLS_ENV=~/.artdaq_database_tools_pending.env ~/cronjobs/copyRunHistory2UconDB-cron-2.sh >> /daq/log/dbtools/database-ucondb-pending.log 2>&1
