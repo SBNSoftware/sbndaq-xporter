@@ -1,0 +1,4 @@
+MAILTO=wketchum@fnal.gov,mvicenzi@bnl.gov,lukhanin@fnal.gov
+* * * * * ARTDAQ_GRAFANA_ENV=~/.artdaq_grafana-ops03.env ~/cronjobs/runrecords_monitor.sh >> /daq/log/grafana/runrecords_monitor.log 2>&1
+*/5 * * * * ARTDAQ_GRAFANA_ENV=~/.artdaq_grafana-ops03.env ~/cronjobs/disk_monitor.sh >> /daq/log/grafana/disk_monitor.log 2>&1
+0 */2  * * * ~/cronjobs/rotate_logs.sh >> /daq/log/rotate_logs.log 2>&1
