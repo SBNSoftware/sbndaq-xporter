@@ -31,6 +31,11 @@ fts_samcp_log_dir=/var/tmp
 fts_config_dir=~icarusraw/FTS/$host
 fts_dropbox_dir=/data/fts_dropbox
 
+# select unique port to expose localhost:8787
+# extract last two digits from hostname (evb12->8712)
+hostnum=$(echo $host | sed 's/[^0-9]*//')   
+hostport=$((8700 + 10#$hostnum))            
+
 # copy config files into host-specific config directory
 # this is not stricly necessary, but keeps things tidy?
 mkdir -p $fts_config_dir
@@ -40,7 +45,7 @@ cp $PWD/fts.conf $PWD/sam_cp.cfg $fts_config_dir/
 # - set hostname inside the container as ${host}
 # - set $USER inside the container as current user
 # - set container name to fts_${host}
-# - expose port 8787 for localhost:8787 status page
+# - expose hostport for localhost:8787 status page
 
 podman run \
        -v ${fts_log_dir}:/opt/fts/fts_logs \
@@ -49,7 +54,7 @@ podman run \
        -v ${fts_dropbox_dir}:/storage \
        -v ${fts_samcp_log_dir}:/var/tmp \
        -v ${fts_x509_proxy_dir}:/opt/fts/fts_proxy \
-       -p 8787:8787 \
+       -p ${hostport}:8787 \
        -d \
        --network slirp4netns:port_handler=slirp4netns \
        --hostname ${host} \
