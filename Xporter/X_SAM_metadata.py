@@ -129,12 +129,12 @@ def SAM_metadata(filename):
             raise KeyError(components)
 
 	    # get number of components per subsystem
-        #tpc = SAMUtilities.count_components(components,pattern="icarustpc")
-        #pmt = SAMUtilities.count_components(components,pattern="icaruspmt")
-        #crt = SAMUtilities.count_components(components,pattern="icaruscrt")     
-        #metadata["icarus_components.tpc"] = tpc
-        #metadata["icarus_components.pmt"] = pmt
-        #metadata["icarus_components.crt"] = crt
+        tpc = SAMUtilities.count_components(components,pattern="icarustpc")
+        pmt = SAMUtilities.count_components(components,pattern="icaruspmt")
+        crt = SAMUtilities.count_components(components,pattern="icaruscrt")     
+        metadata["icarus_components.tpc"] = tpc
+        metadata["icarus_components.pmt"] = pmt
+        metadata["icarus_components.crt"] = crt
 
     except KeyError as e:
         logging.error("X_SAM_Metadata.py exception: "+ str(e))
@@ -202,9 +202,9 @@ def SAM_metadata(filename):
     # last check before releasing metadata into the wild
     # make sure all the important fields are there
     try:
-        #metadata["icarus_components.tpc"]
-        #metadata["icarus_components.pmt"]
-        #metadata["icarus_components.crt"]
+        metadata["icarus_components.tpc"]
+        metadata["icarus_components.pmt"]
+        metadata["icarus_components.crt"]
         metadata["icarus_project.version"]
         metadata["icarus_project.name"]
         metadata["icarus_project.stage"]
