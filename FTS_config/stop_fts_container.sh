@@ -16,3 +16,11 @@ podman stop fts_${host}
 # remove the container, so you can run it again
 echo "Removing FTS podman container on ${host}"
 podman rm fts_${host}
+
+echo "Killing stale processes on ${host}..."
+pkill -f "slirp4netns"
+pkill -f "twistd"
+pkill -f "subprocess_spawner.py"
+echo ""
+
+sleep 1

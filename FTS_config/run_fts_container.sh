@@ -30,11 +30,7 @@ fts_db_dir=/var/tmp
 fts_samcp_log_dir=/var/tmp
 fts_config_dir=~icarusraw/FTS/$host
 fts_dropbox_dir=/data/fts_dropbox
-
-# select unique port to expose localhost:8787
-# extract last two digits from hostname (evb12->8712)
-hostnum=$(echo $host | sed 's/[^0-9]*//')   
-hostport=$((8700 + 10#$hostnum))            
+hostport=8787
 
 # copy config files into host-specific config directory
 # this is not stricly necessary, but keeps things tidy?

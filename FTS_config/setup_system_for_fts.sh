@@ -21,7 +21,8 @@ CONFFILE="${HOME}/.config/containers/storage.conf"
 if [ ! -f "$CONFFILE" ]; then
   echo "Creating $CONFFILE for $USER"
   mkdir -p "${HOME}/.config/containers"
-  echo -e "[storage]\ndriver = \"overlay\"\n\n[storage.options.overlay]\nforce_mask = \"740\"" > "$CONFFILE"
+  mkdir -p "/data/fts_data"
+  echo -e "[storage]\ndriver = \"overlay\"\ngraphroot = \"/data/fts_data\"\n\n[storage.options.overlay]\nmount_program = \"/usr/bin/fuse-overlayfs\"\nforce_mask = \"740\"" > "$CONFFILE"
 fi
 
 # pull latest image
