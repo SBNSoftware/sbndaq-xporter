@@ -2,4 +2,4 @@
 
 # this needs to run on each evb machine as /data is on local disk
 # (technically only the one that runs the OM)
-find /daq/scratch/onmon_files -name '*.root' -type f -mtime +0.25 -delete
+find /daq/scratch/onmon_files -name '*.root' -type f -mtime +0 -delete
