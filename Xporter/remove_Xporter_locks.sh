@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for server in icarus-evb01 icarus-evb02 icarus-evb03 icarus-evb04 icarus-evb05 icarus-evb06
+for server in icarus-evb07 icarus-evb08 icarus-evb09 icarus-evb10 icarus-evb11 icarus-evb12
 do
     echo "Executing: rm /tmp/xporter*.lock"
     ssh $server "rm /tmp/xporter*.lock"
