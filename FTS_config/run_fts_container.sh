@@ -18,13 +18,14 @@
 host=$(hostname | awk -F'.' '{print $1}')
 echo "Starting FTS podman container image on ${host}"
 
-# setting the volume paths inside the container to be the same
+# setting the volume paths inside the container
 # matching between actual location and relative paths inside
 # syntax: -v /HOST-DIR:/CONTAINER-DIR
 
 # these are real locations on the current host
 # using the same as the legacy FTS setup
-fts_x509_proxy_dir=/opt/icarusraw
+
+fts_token_dir=/run/user/$UID
 fts_log_dir=/daq/log/fts_logs/$host
 fts_db_dir=/var/tmp
 fts_samcp_log_dir=/var/tmp
@@ -37,11 +38,15 @@ hostport=8787
 mkdir -p $fts_config_dir
 cp $PWD/fts.conf $PWD/sam_cp.cfg $fts_config_dir/
 
-# additional things the run command does:
+# things the run command does:
+# - mount needed directories (matching fts expectations)
+# - pass bearer token location via env variable
 # - set hostname inside the container as ${host}
 # - set $USER inside the container as current user
 # - set container name to fts_${host}
 # - expose hostport for localhost:8787 status page
+# - detach container from current shell
+# - replace container if already running
 
 podman run \
        -v ${fts_log_dir}:/opt/fts/fts_logs \
@@ -49,12 +54,13 @@ podman run \
        -v ${fts_config_dir}:/opt/fts/fts_config \
        -v ${fts_dropbox_dir}:/storage \
        -v ${fts_samcp_log_dir}:/var/tmp \
-       -v ${fts_x509_proxy_dir}:/opt/fts/fts_proxy \
+       -v ${fts_token_dir}:/run/user/$UID \
        -p ${hostport}:8787 \
-       -d \
        --network slirp4netns:port_handler=slirp4netns \
        --hostname ${host} \
        --env USERNAME=${USER} \
+       --env-merge BEARER_TOKEN_FILE=/run/user/$UID/bt_u$UID \
        --name fts_${host} \
+       -d \
        --replace \
        fermifts
