@@ -1,0 +1,3 @@
+MAILTO=mvicenzi@bnl.gov
+# get bearer token for FTS
+1 * * * * /home/nfs/icarusraw/sbndaq-xporter/FTS_config/get_fts_raw_token.sh
