@@ -14,6 +14,6 @@ export BEARER_TOKEN_FILE=/run/user/$UID/bt_u$UID
 htgettoken -v -i icarus -a htvaultprod.fnal.gov --credkey=${USER}/managedtokens/fifeutilgpvm01.fnal.gov -r raw --nooidc --nokerberos --nossh --minsecs 5400 >> ${logfile} 2>&1
 
 # check token is valid
-httokendecode -H >> ${logfile} 2>&1
+httokendecode -H -v >> ${logfile} 2>&1
 
 exit 0
