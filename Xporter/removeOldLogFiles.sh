@@ -7,7 +7,9 @@ find /daq/log -type f -mtime +90 -exec rm -f {} \;
 find /daq/log -type l ! -exec test -e {} \; -exec rm {} \;
 
 # remove empty directories
-find /daq/log -depth -type d -empty -exec rmdir {} \;
+#find /daq/log -depth -type d -empty -exec rmdir {} \;
+# remove empty directories, but excluding epics_archiver
+find /daq/log -depth -type d -empty -not -path "*/epics_archiver/*" -exec rmdir {} \;
 
 # remove specific logfiles older than 14 days (metrics, triggerdb)
 # fts logs follow same policy, but different script run by root user

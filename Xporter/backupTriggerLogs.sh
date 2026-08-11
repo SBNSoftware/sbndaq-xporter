@@ -7,13 +7,15 @@ BACKUP_DIR=/home/nfs/icarus/TriggerLogBackup
 INPUT_DIR=/daq/log/boardreader
 
 #Loop over trigger logs
-#-mtime +1 # modified more than 1d ago (to exclude ongoing 
+#-mtime +0 # modified more than 1d ago (to exclude ongoing)
+#-mmin +60 # modified more than 60min ago (to exclude ongoing)
 #-L        # use source file time, rather than the symlink
 #-type f   # type of the linked file is 'file'. This will exclude broken
            # symlinks. We do have broken symlinks when we delete old
            # logs.
 
-for logfile in $(find -L $INPUT_DIR -name "run*-icarustrigger.log" -mtime +1 -type f)
+#for logfile in $(find -L $INPUT_DIR -name "run*-icarustrigger.log" -mtime +0 -type f)
+for logfile in $(find -L $INPUT_DIR -name "run*-icarustrigger.log" -mmin +60 -type f)
 do
     filename=$(basename $logfile)
     outfile="${BACKUP_DIR}/${filename}.xz"
